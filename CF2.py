@@ -15,20 +15,23 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("State Machine Sprite Animation")
 
+    # Load sprite sheets
     try:
         dance_sprite_sheet = load_image('Dancing.png')
         jump_sprite_sheet = load_image('Jumping.png')
-        sleep_sprite_sheet = load_image('Sleeping.png') 
+        sleep_sprite_sheet = load_image('Sleeping.png')
+        celebrate_sprite_sheet = load_image('Celebrating.png')
     except SystemExit:
         return 
 
+    # Load backgrounds
     try:
         background_dancing = load_image('DancingBackground.jpg')
         background_jumping = load_image('JumpingBackground.jpg')
         background_sleeping = load_image('SleepingBackground2.jpg')
+        background_celebrating = load_image('CelebratingBackground2.jpg')  # Make sure you have this!
     except SystemExit:
         return  
-    
 
     FRAME_WIDTH = 30
     FRAME_HEIGHT = 30
@@ -43,34 +46,36 @@ def main():
                 frames.append(frame)
         return frames
 
-
+    # Get frames
     dance_frames = get_frames(dance_sprite_sheet, columns=3, rows=2)  
     jump_frames = get_frames(jump_sprite_sheet, columns=3, rows=2)   
-    sleep_frames = get_frames(sleep_sprite_sheet, columns=3, rows=2)  
+    sleep_frames = get_frames(sleep_sprite_sheet, columns=3, rows=2) 
+    celebrate_frames = get_frames(celebrate_sprite_sheet, columns=3, rows=2)
 
-    
-    print(f"Number of frames loaded: {len(dance_frames)} (Dance), {len(jump_frames)} (Jump), {len(sleep_frames)} (Sleep)")
+    print(f"Number of frames loaded: {len(dance_frames)} (Dance), {len(jump_frames)} (Jump), {len(sleep_frames)} (Sleep), {len(celebrate_frames)} (Celebrate)")
 
-    # Different states
+    # State constants
     IDLE = "Idle"
     DANCING = "Dancing"
     JUMPING = "Jumping"
-    SLEEPING = "Sleeping" 
+    SLEEPING = "Sleeping"
+    CELEBRATING = "Celebrating"
 
     class StateMachineSprite:
         def __init__(self):
             self.state = IDLE
-            self.idle_frames = [dance_frames[0]] 
+            self.idle_frames = [dance_frames[0]]  # Reusing first dance frame for idle
             self.dance_frames = dance_frames
-            self.jump_frames = jump_frames  
-            self.sleep_frames = sleep_frames 
+            self.jump_frames = jump_frames
+            self.sleep_frames = sleep_frames
+            self.celebrate_frames = celebrate_frames  # <== added celebrate frames
             self.index = 0
             self.timer = 0
-            self.scale_factor = 10  
-            self.fixed_width = 300  
-            self.fixed_height = 300  
-            self.x = (WIDTH - self.fixed_width) // 2 
-            self.y = (HEIGHT - self.fixed_height) // 2  
+            self.scale_factor = 10
+            self.fixed_width = 300
+            self.fixed_height = 300
+            self.x = (WIDTH - self.fixed_width) // 2
+            self.y = (HEIGHT - self.fixed_height) // 2
 
         def switch_state(self, new_state):
             if self.state != new_state:
@@ -81,17 +86,20 @@ def main():
         def update(self):
             self.timer += 1
             if self.state == DANCING:
-                if self.timer % 15 == 0:  # Controls animation speed
+                if self.timer % 15 == 0:
                     self.index = (self.index + 1) % len(self.dance_frames)
             elif self.state == IDLE:
                 if self.timer % 10 == 0:
                     self.index = (self.index + 1) % len(self.idle_frames)
             elif self.state == JUMPING:
-                if self.timer % 9 == 0:  # Controls animation speed for jumping
+                if self.timer % 9 == 0:
                     self.index = (self.index + 1) % len(self.jump_frames)
             elif self.state == SLEEPING:
-                if self.timer % 30 == 0:  # Controls animation speed for sleeping
+                if self.timer % 30 == 0:
                     self.index = (self.index + 1) % len(self.sleep_frames)
+            elif self.state == CELEBRATING:
+                if self.timer % 8 == 0:  # Celebration is fast!
+                    self.index = (self.index + 1) % len(self.celebrate_frames)
 
         def draw(self, surface):
             if self.state == DANCING:
@@ -103,22 +111,21 @@ def main():
             elif self.state == SLEEPING:
                 frame = self.sleep_frames[self.index]
                 background = background_sleeping
-            else:  
+            elif self.state == CELEBRATING:
+                frame = self.celebrate_frames[self.index]
+                background = background_celebrating
+            else:  # Idle
                 frame = self.idle_frames[0]
-
                 background = pygame.Surface((WIDTH, HEIGHT))
                 background.fill((200, 200, 200))
 
-            
             background_scaled = pygame.transform.scale(background, (WIDTH, HEIGHT))
-            surface.blit(background_scaled, (0, 0))  # Draw the background
+            surface.blit(background_scaled, (0, 0))
 
-           
             scaled_frame = pygame.transform.scale(frame, (self.fixed_width, self.fixed_height))
-
-            # Draw the sprite at the fixed position (center of the screen)
             surface.blit(scaled_frame, (self.x, self.y))
 
+    # Setup fonts
     font = pygame.font.SysFont(None, 48)
     instruction_font = pygame.font.SysFont(None, 36)
 
@@ -135,7 +142,6 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-            # Handle key presses for switching state
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
                     player.switch_state(DANCING)
@@ -143,23 +149,21 @@ def main():
                     player.switch_state(IDLE)
                 if event.key == pygame.K_j:
                     player.switch_state(JUMPING)
-                if event.key == pygame.K_s:  
+                if event.key == pygame.K_s:
                     player.switch_state(SLEEPING)
+                if event.key == pygame.K_c:  # Press 'C' to Celebrate
+                    player.switch_state(CELEBRATING)
 
         player.update()
-
         screen.fill((50, 50, 50))
-
         player.draw(screen)
 
-       
         draw_text(screen, f"Current State: {player.state}", 20, 20)
-
-        
-        draw_text(screen, "Press 'D' to Dance", 20, HEIGHT - 100, instruction_font)
-        draw_text(screen, "Press 'I' to Idle", 20, HEIGHT - 60, instruction_font)
-        draw_text(screen, "Press 'J' to Jump", 20, HEIGHT - 20, instruction_font)
-        draw_text(screen, "Press 'S' to Sleep", 20, HEIGHT - 140, instruction_font)
+        draw_text(screen, "Press 'D' to Dance", 20, HEIGHT - 180, instruction_font)
+        draw_text(screen, "Press 'I' to Idle", 20, HEIGHT - 140, instruction_font)
+        draw_text(screen, "Press 'J' to Jump", 20, HEIGHT - 100, instruction_font)
+        draw_text(screen, "Press 'S' to Sleep", 20, HEIGHT - 60, instruction_font)
+        draw_text(screen, "Press 'C' to Celebrate", 20, HEIGHT - 20, instruction_font)
 
         pygame.display.flip()
         clock.tick(60)
