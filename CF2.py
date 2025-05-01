@@ -11,7 +11,7 @@ def load_image(image_path):
 def main():
     pygame.init()
 
-    WIDTH, HEIGHT = 800, 600
+    WIDTH, HEIGHT = 800, 800
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("State Machine Sprite Animation")
 
@@ -29,7 +29,7 @@ def main():
         background_dancing = load_image('DancingBackground.jpg')
         background_jumping = load_image('JumpingBackground.jpg')
         background_sleeping = load_image('SleepingBackground2.jpg')
-        background_celebrating = load_image('CelebratingBackground2.jpg')  # Make sure you have this!
+        background_celebrating = load_image('newnew.jpg')  # Make sure you have this!
     except SystemExit:
         return  
 
@@ -64,11 +64,11 @@ def main():
     class StateMachineSprite:
         def __init__(self):
             self.state = IDLE
-            self.idle_frames = [dance_frames[0]]  # Reusing first dance frame for idle
+            self.idle_frames = [dance_frames[0]]  
             self.dance_frames = dance_frames
             self.jump_frames = jump_frames
             self.sleep_frames = sleep_frames
-            self.celebrate_frames = celebrate_frames  # <== added celebrate frames
+            self.celebrate_frames = celebrate_frames  
             self.index = 0
             self.timer = 0
             self.scale_factor = 10
@@ -95,10 +95,10 @@ def main():
                 if self.timer % 9 == 0:
                     self.index = (self.index + 1) % len(self.jump_frames)
             elif self.state == SLEEPING:
-                if self.timer % 30 == 0:
+                if self.timer % 100 == 0:
                     self.index = (self.index + 1) % len(self.sleep_frames)
             elif self.state == CELEBRATING:
-                if self.timer % 8 == 0:  # Celebration is fast!
+                if self.timer % 10 == 0:  # 
                     self.index = (self.index + 1) % len(self.celebrate_frames)
 
         def draw(self, surface):
@@ -151,7 +151,7 @@ def main():
                     player.switch_state(JUMPING)
                 if event.key == pygame.K_s:
                     player.switch_state(SLEEPING)
-                if event.key == pygame.K_c:  # Press 'C' to Celebrate
+                if event.key == pygame.K_c:  
                     player.switch_state(CELEBRATING)
 
         player.update()
